@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -31,6 +33,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserProject::class)]
+    private Collection $userProjects;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Task::class)]
+    private Collection $tasks;
+
+    public function __construct()
+    {
+        $this->userProjects = new ArrayCollection();
+        $this->tasks = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -92,13 +106,67 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserProject>
+     */
+    public function getUserProjects(): Collection
+    {
+        return $this->userProjects;
+    }
+
+    public function addUserProject(UserProject $userProject): static
+    {
+        if (!$this->userProjects->contains($userProject)) {
+            $this->userProjects->add($userProject);
+            $userProject->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserProject(UserProject $userProject): static
+    {
+        if ($this->userProjects->removeElement($userProject)) {
+            if ($userProject->getUser() === $this) {
+                $userProject->setUser(null);
+            }
+        }
 
         return $this;
     }
 
     /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
+     * @return Collection<int, Task>
      */
+    public function getTasks(): Collection
+    {
+        return $this->tasks;
+    }
+
+    public function addTask(Task $task): static
+    {
+        if (!$this->tasks->contains($task)) {
+            $this->tasks->add($task);
+            $task->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTask(Task $task): static
+    {
+        if ($this->tasks->removeElement($task)) {
+            if ($task->getUser() === $this) {
+                $task->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function __serialize(): array
     {
         $data = (array) $this;
