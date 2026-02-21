@@ -57,4 +57,14 @@ class TaskRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function countTasksByUser(int $userId, ?string $status, $startDateFrom, $startDateTo): int
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->innerJoin('t.user', 'u')
+            ->where('u.id = :userId')
+            ->setParameter('userId', $userId);
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

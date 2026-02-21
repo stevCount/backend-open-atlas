@@ -56,7 +56,7 @@ class TaskByUserController extends AbstractController
         return new JsonResponse([
             'page' => $page,
             'limit' => $limit,
-            'count' => count($data),
+            'total' => $taskRepository->countTasksByUser($id, $status, $startDateFrom, $startDateTo),
             'data' => $data,
         ]);
     }
