@@ -39,12 +39,12 @@ class TaskByUserController extends AbstractController
             $limit
         );
 
-        $data = array_map(function (Task $task) {
+        $data = array_map(function (Task $task): array {
             return [
                 'id'                => $task->getId(),
                 'title'             => $task->getTitle(),
                 'projectName'       => $task->getProjectName(),
-                'status'            => $task->getStatus(),
+                'status'            => $task->getStatus()->value,
                 'hoursWorked'       => $task->getHoursWorked(),
                 'appliedHourlyRate' => $task->getAppliedHourlyRate(),
                 'totalAmount'       => $this->taskAmountCalculator->resolve($task),

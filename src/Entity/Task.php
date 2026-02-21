@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use App\Enum\TaskStatus;
 
 //** Uso de api ApiPlatform para exponer endpoint para las tareas */
 use ApiPlatform\Metadata\GetCollection;
@@ -59,8 +60,8 @@ class Task
     #[ORM\Column(type: 'date')]
     private \DateTimeInterface $dueDate;
 
-    #[ORM\Column(length: 50)]
-    private string $status;
+    #[ORM\Column(length: 50, enumType: TaskStatus::class)]
+    private TaskStatus $status;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private string $hoursWorked;
@@ -148,12 +149,12 @@ class Task
         return $this;
     }
 
-    public function getStatus(): string
+    public function getStatus(): TaskStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(TaskStatus $status): static
     {
         $this->status = $status;
         return $this;
