@@ -6,6 +6,28 @@ use App\Repository\TaskRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
+//** Uso de api ApiPlatform para exponer endpoint para las tareas */
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
+
+use App\Controller\TaskByUserController;
+
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/users/{id}/tasks',
+            controller: TaskByUserController::class,
+            extraProperties: [
+                'openapi_context' => [
+                    'security' => [['JWT' => []]],
+                    'summary' => 'Lista las tareas de un usuario con proyecto y valor'
+                ]
+            ]
+        ),
+    ],
+)]
+
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\Table(name: 'tasks')]
 #[Gedmo\SoftDeleteable(fieldName: "deletedAt")]
@@ -158,11 +180,6 @@ class Task
         return $this;
     }
 
-    public function getTotalAmount(): ?string
-    {
-        return $this->totalAmount;
-    }
-
     public function setTotalAmount(?string $totalAmount): static
     {
         $this->totalAmount = $totalAmount;
@@ -189,5 +206,25 @@ class Task
     {
         $this->deletedAt = $deletedAt;
         return $this;
+    }
+
+    #[Groups(['task:read'])]
+    public function getTotalAmount(): ?string
+    {
+        if ($this->totalAmount !== null) {
+            return $this->totalAmount;
+        }
+
+        if ($this->appliedHourlyRate !== null && $this->hoursWorked !== null) {
+            return bcmul($this->hoursWorked, $this->appliedHourlyRate, 2);
+        }
+
+        return null;
+    }
+
+    #[Groups(['task:read'])]
+    public function getProjectName(): string
+    {
+        return $this->project->getName();
     }
 }

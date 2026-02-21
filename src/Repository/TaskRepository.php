@@ -16,28 +16,56 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-    //    /**
-    //     * @return Task[] Returns an array of Task objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @param int $userId
+     * @param string|null $status
+     * @param \DateTimeInterface|null $startDateFrom
+     * @param \DateTimeInterface|null $startDateTo
+     * @param int $page
+     * @param int $limit
+     * @return array
+     */
+    public function findTasksByUserWithProjectAndAmount(
+        int $userId,
+        ?string $status = null,
+        ?\DateTimeInterface $startDateFrom = null,
+        ?\DateTimeInterface $startDateTo = null,
+        int $page = 1,
+        int $limit = 10
+    ): array {
+        $qb = $this->createQueryBuilder('t')
+            ->select(
+                't.id',
+                't.title',
+                'p.name AS projectName',
+                't.hoursWorked',
+                't.appliedHourlyRate',
+                't.totalAmount',
+                't.status',
+                't.startDate',
+                't.dueDate'
+            )
+            ->innerJoin('t.project', 'p')
+            ->innerJoin('t.user', 'u')
+            ->where('u.id = :userId')
+            ->setParameter('userId', $userId);
 
-    //    public function findOneBySomeField($value): ?Task
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($status) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $status);
+        }
+        if ($startDateFrom) {
+            $qb->andWhere('t.startDate >= :startDateFrom')
+                ->setParameter('startDateFrom', $startDateFrom);
+        }
+        if ($startDateTo) {
+            $qb->andWhere('t.startDate <= :startDateTo')
+                ->setParameter('startDateTo', $startDateTo);
+        }
+        $qb->orderBy('t.startDate', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getArrayResult();
+    }
 }
