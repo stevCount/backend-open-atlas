@@ -34,17 +34,6 @@ class TaskRepository extends ServiceEntityRepository
         int $limit = 10
     ): array {
         $qb = $this->createQueryBuilder('t')
-            ->select(
-                't.id',
-                't.title',
-                'p.name AS projectName',
-                't.hoursWorked',
-                't.appliedHourlyRate',
-                't.totalAmount',
-                't.status',
-                't.startDate',
-                't.dueDate'
-            )
             ->innerJoin('t.project', 'p')
             ->innerJoin('t.user', 'u')
             ->where('u.id = :userId')
@@ -66,6 +55,6 @@ class TaskRepository extends ServiceEntityRepository
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
 
-        return $qb->getQuery()->getArrayResult();
+        return $qb->getQuery()->getResult();
     }
 }

@@ -26,6 +26,7 @@ use App\Controller\TaskByUserController;
             ]
         ),
     ],
+    normalizationContext: ['groups' => ['task:read']]
 )]
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
@@ -208,18 +209,9 @@ class Task
         return $this;
     }
 
-    #[Groups(['task:read'])]
     public function getTotalAmount(): ?string
     {
-        if ($this->totalAmount !== null) {
-            return $this->totalAmount;
-        }
-
-        if ($this->appliedHourlyRate !== null && $this->hoursWorked !== null) {
-            return bcmul($this->hoursWorked, $this->appliedHourlyRate, 2);
-        }
-
-        return null;
+        return $this->totalAmount;
     }
 
     #[Groups(['task:read'])]
